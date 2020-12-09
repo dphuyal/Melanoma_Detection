@@ -93,7 +93,7 @@ for fold, (train_index, valid_index) in enumerate(folds):
     model.to(device)
     
     '''
-    # DataParallel
+    # run two GPUs parallely
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         model = nn.DataParallel(model)
@@ -115,10 +115,8 @@ for fold, (train_index, valid_index) in enumerate(folds):
         start_time = time.time()
         correct = 0
         running_loss = 0 # loss in each epochs
-        # total_predictions = 0.0
         model.train()
         count=0
-        # version='test'
 
         for tl,train_batch in enumerate(train_loader):
             optimizer.zero_grad()
@@ -144,26 +142,31 @@ for fold, (train_index, valid_index) in enumerate(folds):
 
         # validating on our validation dataset
         model.eval()
+
+        # matrix to store evaluation predictions
         val_predicts = torch.zeros((len(valid_index), 1), dtype=torch.float32, device=device)
 
+        # disable gradients, no optimization required for evaluation
         with torch.no_grad():
             for k, val_batch in enumerate(valid_loader):
-                train_img, train_csv, train_targ = val_batch
-                img,csv,y = train_img.to(device), train_csv.to(device), train_targ.to(device)
-                # img[1] = torch.tensor(img[1], device=device, dtype=torch.float32)
+                val_img, val_csv, val_targ = val_batch
+                img,csv,y = val_img.to(device), val_csv.to(device), val_targ.to(device)
                 
                 z_val = model(img, csv)
                 val_pred = torch.sigmoid(z_val)
-                # print(val_pred.shape, img.shape[0], len(valid_index),val_pred)
                 
                 val_predicts[k*valid_loader.batch_size : k*valid_loader.batch_size + img.shape[0]] = val_pred
 
+            # calculate validation accuracy
             val_accuracy = accuracy_score(df_valid['target'].values, torch.round(val_predicts.cpu()))
+
+            # calculate ROC
             val_roc = roc_auc_score(df_valid['target'].values, torch.round(val_predicts.cpu()))
             
+            # calculate train and eval time
             duration = str(datetime.timedelta(seconds=time.time() - start_time))[:7]
 
-            # Append info to .txt file
+            # append info to .txt file
             with open(f"new_logs/{model_name}.txt", 'a+') as f:
                 print('Fold: {} | Epoch: {}/{} | Training Loss: {:.3f} | Train Acc: {:.3f} | Valid Acc: {:.3f} | ROC: {:.3f} | Training time: {}'.format(
                 fold+1,
@@ -175,7 +178,7 @@ for fold, (train_index, valid_index) in enumerate(folds):
                 val_roc, 
                 duration), file=f)
 
-            # Print on the console
+            # prints on the console
             print('Epoch: {}/{} | Training Loss: {:.3f} | Train acc: {:.3f} | Val acc: {:.3f} | Val roc_auc: {:.3f} | Training time: {}'.format(
             epoch + 1,
             epochs, 
@@ -185,20 +188,23 @@ for fold, (train_index, valid_index) in enumerate(folds):
             val_roc, 
             duration))
 
+            # update scheduler, updates learning_rate
             scheduler.step(val_roc)
 
-            # Update best_roc
-            if not best_ROC: # If best_roc = None
+            # update best_ROC
+            if not best_ROC: # if best_roc = None
                 best_ROC = val_roc
                 save_filename = os.path.join(model_path, model_name + "_fold{}_epoch{}_ROC_{:.3f}.pth".format(fold+1,epoch+1,val_roc))
                 torch.save(model, save_filename)
                 continue
 
             if val_roc > best_ROC:
-                best_ROC = val_roc # resetting the validation accuracy because we have new best validation accuracy
-                patience = es_patience # resetting patience
+                best_ROC = val_roc # reset best_ROC to val_roc 
+                patience = es_patience # reset patience
+                
                 # save_filename = os.path.join(model_path, model_name + "_fold_{}.pth".format(fold)) 
                 save_filename = os.path.join(model_path, model_name + "_fold{}_epoch{}_ROC_{:.3f}.pth".format(fold+1,epoch+1,val_roc)) 
+                # save model with highest ROC
                 torch.save(model, save_filename)
             else: 
                 patience -= 1
@@ -211,5 +217,5 @@ for fold, (train_index, valid_index) in enumerate(folds):
                     break
     # to prevent memory leaks
     del model, train_dataset, valid_dataset, train_loader, valid_loader
-    # Garbage collector
+    # garbage collector
     gc.collect()

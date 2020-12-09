@@ -1,12 +1,18 @@
+# Train set paths
 TRAIN_CSV_PATH = '../new_dataset/'  # roman's dataset
 TRAIN_CSV_PATH_20 = "../dataset_256/"
 data_path = '../dataset_256/'
-# to select eff net or resnet 
+
+# Test set paths
+TEST_PATH = "../input/melanoma-external-malignant-256/test"
+TEST_CSV_PATH = "../input/siim-isic-melanoma-classification/test.csv"
+
+# select efficientnet models or resnet-50 
 model_type = 'efficientnet'
-# 
-eff_dict  = {'b2':'efficientnet-b2'}
-# 
-eff_type = 'b2'
+# dictionary to map b2 with efficientnet-b2, b3 with efficientnet-b3...
+effnet_dict  = {'b2':'efficientnet-b2'}
+# select either b2, b3, b4...
+effnet_type = 'b2'
 
 # STATICS
 batch_size = 64

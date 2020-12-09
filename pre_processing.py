@@ -18,38 +18,21 @@ import warnings
 warnings.filterwarnings("ignore")
 from config import *
 
-
+# use CPU if GPU is not available
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-
-# df = pd.read_csv(os.path.join(TRAIN_CSV_PATH_20,'train.csv'))
-# df2 = pd.read_csv(os.path.join(TRAIN_CSV_PATH,'train_concat.csv')) # roman's dataset train.csv
 
 def clean_dataframe(train_df, train_df2):
     train_df = pd.read_csv(os.path.join(TRAIN_CSV_PATH_20,'train.csv'))
     train_df['filepath'] = train_df['image_name'].apply(lambda x: os.path.join(TRAIN_CSV_PATH_20, f'train', f'{x}.jpg'))
-
-    # print("Benign number in 2020: ", len(train_df[train_df['target'] == 0]))
-    # print("Malignant number in 2020: ", len(train_df[train_df['target'] == 1]))
-
     train_df2['filepath'] = train_df2['image_name'].apply(lambda x: os.path.join(TRAIN_CSV_PATH, 'train/train', x+'.jpg'))
 
-    # print(train_df2.head())
-    # print("Benign number Roman's dataset:: ", len(train_df2[train_df2['target'] == 0]))
-    # print("Malignant number Roman's dataset:: ", len(train_df2[train_df2['target'] == 1]))
-    # exit()
-
-    # --- Concatenate info which is not available in 
+    # Concatenate info which is not available in 2020 dataset
     common_images = train_df['image_name'].unique()
     print("Common images: ", len(common_images))
     new_data = train_df2[~train_df2['image_name'].isin(common_images)]
-    # print(len(new_data))
-    # exit()
 
-    # Merge all together
+    # merge all together
     train_df = pd.concat([train_df, new_data]).reset_index(drop=True)
-    # concat 2020 and 2019 train datasets
-    # train_df = pd.concat([train_df, train_df2]).reset_index(drop=True)
-
     print("The length of entire dataset: ", len(train_df))
 
     # renames the column name
@@ -62,22 +45,12 @@ def clean_dataframe(train_df, train_df2):
             train_df.drop([drop], axis=1, inplace=True)
 
     # impute the missing data
-    # train_df['sex'] = train_df['sex'].fillna(-1)
     train_df['sex'].fillna("male", inplace = True) 
     train_df['age'].fillna(0, inplace = True) 
-    # train_df['age'] = train_df['age'].fillna(0)
     train_df['anatomy'].fillna("torso", inplace = True)
-    # train_df['anatomy'] = train_df['anatomy'].fillna(0)
-    # df = df[df.line_race != 0]
-    # train_df = train_df[train_df.patient_id != "BCN_0001085"]
     train_df['patient_id'].fillna(0, inplace = True) # IP_4382720
-    # print(len(train_df))
-    # exit()
     patient_nans = train_df['patient_id'].isna().sum()
-    # print("nans patient: ", patient_nans)
     freq_patient = train_df.patient_id.mode()
-    # print(freq_patient)
-    # exit()
 
     to_encode = ['age', 'sex', 'anatomy']
     encoded_all = []
@@ -97,12 +70,10 @@ def clean_dataframe(train_df, train_df2):
     train_df['age'] = norm_clean[:,0]
     train_df['sex'] = norm_clean[:,1] 
     train_df['anatomy'] = norm_clean[:,2]
-    # print(train_df[30:])
-    # exit()
     
     return train_df.reset_index()
 
-# Dataset 
+# custom dataset 
 class Melanoma_Dataset(Dataset):
 
     def __init__(self, df, transforms=None):
@@ -115,8 +86,6 @@ class Melanoma_Dataset(Dataset):
         image = cv2.imread(row.filepath)
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
-
-        # if self.transforms is not None:
         if self.transforms:
             res = self.transforms(image=image)
             image = res['image'].astype(np.float32)
@@ -155,7 +124,6 @@ class Microscope(A.ImageOnlyTransform):
 
 
 def get_transforms(image_size):
-
     transforms_train = albumentations.Compose([
         Microscope(p=0.5),
         albumentations.Transpose(p=0.5),
