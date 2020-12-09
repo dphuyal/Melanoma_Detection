@@ -16,6 +16,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
 import warnings
 warnings.filterwarnings("ignore")
+from config import *
 
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")

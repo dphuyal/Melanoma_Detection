@@ -25,7 +25,8 @@ from config import *
 set_seed()
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-
+os.makedirs(model_path_,exist_ok=True)
+os.makedirs(logs_path_,exist_ok=True)
 # some paths definition
 cwd = os.getcwd()
 model_path = os.path.join(cwd, model_path_)
@@ -36,7 +37,7 @@ df = pd.read_csv(os.path.join(TRAIN_CSV_PATH_20,'train.csv'))
 df2 = pd.read_csv(os.path.join(TRAIN_CSV_PATH,'train_concat.csv')) # roman's dataset
 
 train_df = clean_dataframe(df,df2)
-
+train_df = train_df.sample(1000)
 
 
 # stratifiedkfold split

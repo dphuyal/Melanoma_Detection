@@ -8,8 +8,6 @@ eff_dict  = {'b2':'efficientnet-b2'}
 # 
 eff_type = 'b2'
 
-
-
 # STATICS
 batch_size = 64
 n_split = 5
@@ -21,5 +19,5 @@ image_size = 256
 output_size = 1
 num_cols = 3
 
-model_path_ = '../saved_models_resnet50'
-logs_path_ = '../new_logs'
+model_path_ = 'saved_models_resnet50'
+logs_path_ = 'logs'

@@ -1,0 +1,4 @@
+Fold: 1 | Epoch: 1/24 | Training Loss: 0.359 | Train Acc: 0.861 | Valid Acc: 0.930 | ROC: 0.682 | Training time: 0:00:14
+Fold: 1 | Epoch: 2/24 | Training Loss: 0.257 | Train Acc: 0.897 | Valid Acc: 0.940 | ROC: 0.727 | Training time: 0:00:14
+Fold: 1 | Epoch: 3/24 | Training Loss: 0.245 | Train Acc: 0.922 | Valid Acc: 0.950 | ROC: 0.813 | Training time: 0:00:14
+Fold: 1 | Epoch: 4/24 | Training Loss: 0.202 | Train Acc: 0.925 | Valid Acc: 0.945 | ROC: 0.790 | Training time: 0:00:14
