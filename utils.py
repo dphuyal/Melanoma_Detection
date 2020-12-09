@@ -1,3 +1,8 @@
+import torch
+import torch
+import torch.nn as nn
+import numpy as np
+
 def set_seed(seed = 43):
     '''Sets the seed of the entire notebook so results are the same every time we run.
     This is for REPRODUCIBILITY.'''

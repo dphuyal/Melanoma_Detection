@@ -1,6 +1,6 @@
-TRAIN_CSV_PATH = 'new_dataset/'  # roman's dataset
-TRAIN_CSV_PATH_20 = "dataset_256/"
-data_path = 'dataset_256/'
+TRAIN_CSV_PATH = '../new_dataset/'  # roman's dataset
+TRAIN_CSV_PATH_20 = "../dataset_256/"
+data_path = '../dataset_256/'
 # to select eff net or resnet 
 model_type = 'efficientnet'
 # 
@@ -21,5 +21,5 @@ image_size = 256
 output_size = 1
 num_cols = 3
 
-model_path_ = "saved_models_resnet50"
-logs_path_ = 'new_logs'
+model_path_ = '../saved_models_resnet50'
+logs_path_ = '../new_logs'
