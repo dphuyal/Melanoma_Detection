@@ -12,8 +12,8 @@ SUB_FILE_PATH_20 = '../dataset_256/sample_submission.csv'
 # select efficientnet models or resnet-50 
 model_type = 'efficientnet'
 # dictionary to map b2 with efficientnet-b2, b3 with efficientnet-b3...
-effnet_dict  = {'b2':'efficientnet-b2'}
-# select either b2, b3, b4...
+effnet_dict  = {'b2':'efficientnet-b2', 'b3':'efficientnet-b3', 'b4':'efficientnet-b4', 'b7':'efficientnet-b7'}
+# select either b2, b3, b4 or b7
 effnet_type = 'b2'
 
 # STATICS

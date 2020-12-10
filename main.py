@@ -40,7 +40,6 @@ df = pd.read_csv(os.path.join(TRAIN_CSV_PATH_20,'train.csv'))
 df2 = pd.read_csv(os.path.join(TRAIN_CSV_PATH,'train_concat.csv')) # roman's dataset with 5k positive samples
 
 train_df = clean_train_df(df,df2)
-#train_df = train_df.sample(1000)
 
 # GroupKFold
 group_fold = GroupKFold(n_split)
@@ -114,12 +113,10 @@ for fold, (train_index, valid_index) in enumerate(folds):
             loss.backward()
             optimizer.step()
             pred = torch.round(torch.sigmoid(yhat))  # round off sigmoid to obtain predictions
-            # total_predictions += y.size(0)
 
             correct  += (y.squeeze().cpu() ==pred.squeeze().cpu()).sum().item()
             running_loss += loss.item()
 
-        # train_accuracy = (correct/total_predictions) * 100
         train_accuracy = correct / len(train_index)
         running_loss /= len(train_loader)
         end_time = time.time()
