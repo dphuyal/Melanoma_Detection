@@ -27,5 +27,5 @@ image_size = 256
 output_size = 1 
 num_cols = 3 
 
-model_path_ = 'saved_models_resnet50'
+model_path_ = 'saved_models_efficientnet-b2'
 logs_path_ = 'logs'

@@ -70,7 +70,7 @@ for fold, (train_index, valid_index) in enumerate(folds):
         )
 
     if model_type == 'efficientnet':
-        model_name = eff_dict[eff_type]
+        model_name = effnet_dict[effnet_type]
         model=EfficientNet_Models(output_size=output_size, num_cols=num_cols, model_name=model_name)
     elif model_type == 'resnet':
         model = Resnet_Model(output_size=output_size, num_cols=num_cols)
@@ -148,7 +148,7 @@ for fold, (train_index, valid_index) in enumerate(folds):
             duration = str(datetime.timedelta(seconds=time.time() - start_time))[:7]
 
             # append info to .txt file
-            with open(f"new_logs/{model_name}.txt", 'a+') as f:
+            with open(f"logs/{model_name}.txt", 'a+') as f:
                 print('Fold: {} | Epoch: {}/{} | Training Loss: {:.3f} | Train Acc: {:.3f} | Valid Acc: {:.3f} | ROC: {:.3f} | Training time: {}'.format(
                 fold+1,
                 epoch+1, 
@@ -191,7 +191,7 @@ for fold, (train_index, valid_index) in enumerate(folds):
                 patience -= 1
                 if patience == 0:
                     # write to the file
-                    with open(f"new_logs/lr0.0005_Dout0.3{model_name}.txt", 'a+') as f:
+                    with open(f"logs/lr0.0005_Dout0.3{model_name}.txt", 'a+') as f:
                         print('Early stopping no improvement since 3 epochs | Best ROC {:.3f}'.format(best_ROC), file=f)
                     # print on the console
                     print('Early stopping no improvement since 3 epochs | Best ROC {:.3f}'.format(best_ROC))
