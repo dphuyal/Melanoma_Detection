@@ -17,7 +17,7 @@ from sklearn.model_selection import StratifiedKFold, GroupKFold, KFold
 from efficientnet_pytorch import EfficientNet
 warnings.filterwarnings("ignore")
 
-from pre_processing import clean_dataframe,Melanoma_Dataset,get_transforms
+from pre_processing import clean_train_df,clean_test_df,Melanoma_Dataset,get_transforms
 from models import EfficientNet_Models, Resnet_Model
 from utils import set_seed
 from config import *
@@ -26,7 +26,7 @@ set_seed()
 # GPU check
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-# created a directory, if it does not exist
+# creates a directory, if it does not exist
 os.makedirs(model_path_,exist_ok=True)
 os.makedirs(logs_path_,exist_ok=True)
 
@@ -38,22 +38,13 @@ logs_path = os.path.join(cwd, logs_path_)
 
 df = pd.read_csv(os.path.join(TRAIN_CSV_PATH_20,'train.csv'))
 df2 = pd.read_csv(os.path.join(TRAIN_CSV_PATH,'train_concat.csv')) # roman's dataset with 5k positive samples
-df_test = pd.read_csv(os.path.join(TEST_CSV_PATH_20,'test.csv'))
 
-print(df_test.head(5))
-exit()
-
-
-train_df = clean_dataframe(df,df2,df_test)
-test_df = clean_dataframe(df,df2,df_test)
+train_df = clean_train_df(df,df2)
 #train_df = train_df.sample(1000)
-
 
 # GroupKFold
 group_fold = GroupKFold(n_split)
 
-
-# train_len=len(train_df)
 folds = group_fold.split(X = np.zeros(len(train_df)), 
                          y = train_df['target'],
                          groups = train_df['patient_id'].tolist()
@@ -61,22 +52,16 @@ folds = group_fold.split(X = np.zeros(len(train_df)),
 
 for fold, (train_index, valid_index) in enumerate(folds):
     print('=' * 20, 'Fold', fold, '=' * 20) 
-
-    # best_val_accuracy = 0 # best validation score in the current fold
     best_ROC = 0
     patience = es_patience # current patience counter    
 
     df_train = train_df.iloc[train_index].reset_index(drop=True)
     df_valid = train_df.iloc[valid_index].reset_index(drop=True)
 
-    # print(len(df_train), len(df_valid), len(df_test))
-    # exit()
-
     transforms_train, transforms_val = get_transforms(image_size)
 
     train_dataset = Melanoma_Dataset(df_train,transforms=transforms_train)
     valid_dataset = Melanoma_Dataset(df_valid,transforms=transforms_val)
-    test_dataset = ScancerDataset(test_df,transforms=transforms_val)
     
     train_loader = torch.utils.data.DataLoader(
             train_dataset, batch_size=batch_size, shuffle=True, num_workers=8
@@ -84,10 +69,6 @@ for fold, (train_index, valid_index) in enumerate(folds):
     valid_loader = torch.utils.data.DataLoader(
             valid_dataset, batch_size=batch_size, shuffle=False, num_workers=8
         )
-    
-    test_loader = torch.utils.data.DataLoader(
-        test_dataset, batch_size=batch_size, shuffle=False, num_workers=8
-    )
 
     if model_type == 'efficientnet':
         model_name = eff_dict[eff_type]
@@ -99,7 +80,7 @@ for fold, (train_index, valid_index) in enumerate(folds):
     model.to(device)
     
     '''
-    # run two GPUs parallely
+    # run two GPUs in parallel
     if torch.cuda.device_count() > 1:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
         model = nn.DataParallel(model)
@@ -113,9 +94,9 @@ for fold, (train_index, valid_index) in enumerate(folds):
     verbose=True,
     factor=0.2
     )
+
+    # loss function, has BCE and sigmoid in one class
     criterion = nn.BCEWithLogitsLoss()
-    
-    # print('Total tl ',len(train_loader))
     
     for epoch in range(epochs):
         start_time = time.time()
@@ -142,9 +123,6 @@ for fold, (train_index, valid_index) in enumerate(folds):
         train_accuracy = correct / len(train_index)
         running_loss /= len(train_loader)
         end_time = time.time()
-        # print('Training Loss: ', running_loss, 'Time: ', round(end_time - start_time, 3), 's')
-        # print('Training Accuracy: ', round(train_accuracy,3), '%')
-
 
         # validating on our validation dataset
         model.eval()

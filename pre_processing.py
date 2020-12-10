@@ -21,13 +21,10 @@ from config import *
 # GPU check
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-def clean_dataframe(train_df_, train_df2_, test_df_):
+def clean_train_df(train_df, train_df2):
     train_df = pd.read_csv(os.path.join(TRAIN_CSV_PATH_20,'train.csv'))
     train_df['filepath'] = train_df['image_name'].apply(lambda x: os.path.join(TRAIN_CSV_PATH_20, f'train', f'{x}.jpg'))
     train_df2['filepath'] = train_df2['image_name'].apply(lambda x: os.path.join(TRAIN_CSV_PATH, 'train/train', x+'.jpg'))
-
-    test_df = pd.read_csv(os.path.join(TEST_CSV_PATH,'test.csv'))
-    test_df['filepath'] = test_df['image_name'].apply(lambda x: os.path.join(TEST_CSV_PATH, f'test', f'{x}.jpg'))
 
     # concatenate info which is not available in 2020 dataset
     common_images = train_df['image_name'].unique()
@@ -42,19 +39,10 @@ def clean_dataframe(train_df_, train_df2_, test_df_):
     train_df = train_df.rename(columns={"anatom_site_general_challenge": "anatomy"})
     train_df = train_df.rename(columns={"age_approx": "age"})
 
-    test_df = test_df.rename(columns={"anatom_site_general_challenge": "anatomy"})
-    test_df = test_df.rename(columns={"age_approx": "age"})
-
     cols_drop = ['benign_malignant', 'tfrecord', 'diagnosis', 'width', 'height']
     for drop in cols_drop:
         if drop in train_df.columns:
             train_df.drop([drop], axis=1, inplace=True)
-        else: 
-            continue
-        if drop in test_df.columns:
-            test_df.drop([drop], axis=1, inplace=True)
-        else: 
-            break
 
     # impute the missing data on train set
     train_df['sex'].fillna("male", inplace = True) 
@@ -81,6 +69,20 @@ def clean_dataframe(train_df_, train_df2_, test_df_):
     train_df['sex'] = norm_clean[:,1] 
     train_df['anatomy'] = norm_clean[:,2]
 
+    return train_df.reset_index()
+
+def clean_test_df(test_df):
+    test_df = pd.read_csv(os.path.join(TEST_CSV_PATH_20,'test.csv'))
+    test_df['filepath'] = test_df['image_name'].apply(lambda x: os.path.join(TEST_CSV_PATH_20, f'test', f'{x}.jpg'))
+
+    # rename the column names on test set
+    test_df = test_df.rename(columns={"anatom_site_general_challenge": "anatomy"})
+    test_df = test_df.rename(columns={"age_approx": "age"})
+
+    # drop unneccessary columns
+    if 'width' in test_df.columns : test_df.drop(['width'], axis=1, inplace=True)
+    if 'height' in test_df.columns : test_df.drop(['height'], axis=1, inplace=True)
+
     # impute missing data on test set
     test_df['sex'].fillna("male", inplace = True) 
     test_df['age'].fillna(50, inplace = True) # median age is 50
@@ -100,13 +102,13 @@ def clean_dataframe(train_df_, train_df2_, test_df_):
     test_df['sex'] = encoded_all[1]
     test_df['anatomy'] = encoded_all[2]  
     
-    norm_clean = preprocessing.normalize(test_df[['age', 'sex', 'anatomy', 'diagnosis']])
+    norm_clean = preprocessing.normalize(test_df[['age', 'sex', 'anatomy']])
 
     test_df['age'] = norm_clean[:,0]
     test_df['sex'] = norm_clean[:,1] 
     test_df['anatomy'] = norm_clean[:,2]
     
-    return train_df.reset_index(), test_df.reset_index()
+    return test_df.reset_index()
 
 # custom dataset 
 class Melanoma_Dataset(Dataset):
