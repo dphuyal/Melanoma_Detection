@@ -18,15 +18,18 @@ import warnings
 warnings.filterwarnings("ignore")
 from config import *
 
-# use CPU if GPU is not available
+# GPU check
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-def clean_dataframe(train_df, train_df2):
+def clean_dataframe(train_df_, train_df2_, test_df_):
     train_df = pd.read_csv(os.path.join(TRAIN_CSV_PATH_20,'train.csv'))
     train_df['filepath'] = train_df['image_name'].apply(lambda x: os.path.join(TRAIN_CSV_PATH_20, f'train', f'{x}.jpg'))
     train_df2['filepath'] = train_df2['image_name'].apply(lambda x: os.path.join(TRAIN_CSV_PATH, 'train/train', x+'.jpg'))
 
-    # Concatenate info which is not available in 2020 dataset
+    test_df = pd.read_csv(os.path.join(TEST_CSV_PATH,'test.csv'))
+    test_df['filepath'] = test_df['image_name'].apply(lambda x: os.path.join(TEST_CSV_PATH, f'test', f'{x}.jpg'))
+
+    # concatenate info which is not available in 2020 dataset
     common_images = train_df['image_name'].unique()
     print("Common images: ", len(common_images))
     new_data = train_df2[~train_df2['image_name'].isin(common_images)]
@@ -35,22 +38,29 @@ def clean_dataframe(train_df, train_df2):
     train_df = pd.concat([train_df, new_data]).reset_index(drop=True)
     print("The length of entire dataset: ", len(train_df))
 
-    # renames the column name
+    # rename the column names on train and test set
     train_df = train_df.rename(columns={"anatom_site_general_challenge": "anatomy"})
     train_df = train_df.rename(columns={"age_approx": "age"})
 
+    test_df = test_df.rename(columns={"anatom_site_general_challenge": "anatomy"})
+    test_df = test_df.rename(columns={"age_approx": "age"})
+
     cols_drop = ['benign_malignant', 'tfrecord', 'diagnosis', 'width', 'height']
     for drop in cols_drop:
-        if drop in train_df.columns :
+        if drop in train_df.columns:
             train_df.drop([drop], axis=1, inplace=True)
+        else: 
+            continue
+        if drop in test_df.columns:
+            test_df.drop([drop], axis=1, inplace=True)
+        else: 
+            break
 
-    # impute the missing data
+    # impute the missing data on train set
     train_df['sex'].fillna("male", inplace = True) 
     train_df['age'].fillna(0, inplace = True) 
     train_df['anatomy'].fillna("torso", inplace = True)
     train_df['patient_id'].fillna(0, inplace = True) # IP_4382720
-    patient_nans = train_df['patient_id'].isna().sum()
-    freq_patient = train_df.patient_id.mode()
 
     to_encode = ['age', 'sex', 'anatomy']
     encoded_all = []
@@ -70,8 +80,33 @@ def clean_dataframe(train_df, train_df2):
     train_df['age'] = norm_clean[:,0]
     train_df['sex'] = norm_clean[:,1] 
     train_df['anatomy'] = norm_clean[:,2]
+
+    # impute missing data on test set
+    test_df['sex'].fillna("male", inplace = True) 
+    test_df['age'].fillna(50, inplace = True) # median age is 50
+    test_df['anatomy'].fillna("torso", inplace = True)
+    test_df['patient_id'] = test_df['patient_id'].fillna(0)
+
+    to_encode = ['age', 'sex', 'anatomy']
+    encoded_all = []
+
+    label_encoder = LabelEncoder()
+
+    for column in to_encode:
+        encoded = label_encoder.fit_transform(test_df[column])
+        encoded_all.append(encoded)
     
-    return train_df.reset_index()
+    test_df['age'] = encoded_all[0]
+    test_df['sex'] = encoded_all[1]
+    test_df['anatomy'] = encoded_all[2]  
+    
+    norm_clean = preprocessing.normalize(test_df[['age', 'sex', 'anatomy', 'diagnosis']])
+
+    test_df['age'] = norm_clean[:,0]
+    test_df['sex'] = norm_clean[:,1] 
+    test_df['anatomy'] = norm_clean[:,2]
+    
+    return train_df.reset_index(), test_df.reset_index()
 
 # custom dataset 
 class Melanoma_Dataset(Dataset):

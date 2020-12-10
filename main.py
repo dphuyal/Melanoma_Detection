@@ -23,10 +23,13 @@ from utils import set_seed
 from config import *
 
 set_seed()
+# GPU check
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
+# created a directory, if it does not exist
 os.makedirs(model_path_,exist_ok=True)
 os.makedirs(logs_path_,exist_ok=True)
+
 # some paths definition
 cwd = os.getcwd()
 model_path = os.path.join(cwd, model_path_)
@@ -34,14 +37,17 @@ logs_path = os.path.join(cwd, logs_path_)
 
 
 df = pd.read_csv(os.path.join(TRAIN_CSV_PATH_20,'train.csv'))
-df2 = pd.read_csv(os.path.join(TRAIN_CSV_PATH,'train_concat.csv')) # roman's dataset
+df2 = pd.read_csv(os.path.join(TRAIN_CSV_PATH,'train_concat.csv')) # roman's dataset with 5k positive samples
+df_test = pd.read_csv(os.path.join(TEST_CSV_PATH_20,'test.csv'))
 
-train_df = clean_dataframe(df,df2)
-train_df = train_df.sample(1000)
+print(df_test.head(5))
+exit()
 
 
-# stratifiedkfold split
-# group_fold = model_selection.StratifiedKFold(n_split)
+train_df = clean_dataframe(df,df2,df_test)
+test_df = clean_dataframe(df,df2,df_test)
+#train_df = train_df.sample(1000)
+
 
 # GroupKFold
 group_fold = GroupKFold(n_split)
@@ -70,7 +76,7 @@ for fold, (train_index, valid_index) in enumerate(folds):
 
     train_dataset = Melanoma_Dataset(df_train,transforms=transforms_train)
     valid_dataset = Melanoma_Dataset(df_valid,transforms=transforms_val)
-    # test_dataset = ScancerDataset(df_test,transforms=transforms_val)
+    test_dataset = ScancerDataset(test_df,transforms=transforms_val)
     
     train_loader = torch.utils.data.DataLoader(
             train_dataset, batch_size=batch_size, shuffle=True, num_workers=8
@@ -79,9 +85,9 @@ for fold, (train_index, valid_index) in enumerate(folds):
             valid_dataset, batch_size=batch_size, shuffle=False, num_workers=8
         )
     
-    # test_loader = torch.utils.data.DataLoader(
-    #     test_dataset, batch_size=batch_size, shuffle=False, num_workers=8
-    # )
+    test_loader = torch.utils.data.DataLoader(
+        test_dataset, batch_size=batch_size, shuffle=False, num_workers=8
+    )
 
     if model_type == 'efficientnet':
         model_name = eff_dict[eff_type]
@@ -215,6 +221,7 @@ for fold, (train_index, valid_index) in enumerate(folds):
                     # print on the console
                     print('Early stopping no improvement since 3 epochs | Best ROC {:.3f}'.format(best_ROC))
                     break
+            
     # to prevent memory leaks
     del model, train_dataset, valid_dataset, train_loader, valid_loader
     # garbage collector

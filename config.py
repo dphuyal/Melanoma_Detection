@@ -1,11 +1,13 @@
-# Train set paths
+# train set paths
 TRAIN_CSV_PATH = '../new_dataset/'  # roman's dataset
-TRAIN_CSV_PATH_20 = "../dataset_256/"
-data_path = '../dataset_256/'
+TRAIN_CSV_PATH_20 = '../dataset_256/'
+#data_path = '../dataset_256/'
 
-# Test set paths
-TEST_PATH = "../input/melanoma-external-malignant-256/test"
-TEST_CSV_PATH = "../input/siim-isic-melanoma-classification/test.csv"
+# test set paths
+TEST_CSV_PATH_20 = '../dataset_256/'
+
+# submission file path provided by Kaggle
+SUB_FILE_PATH_20 = '../dataset_256/sample_submission.csv'
 
 # select efficientnet models or resnet-50 
 model_type = 'efficientnet'
@@ -22,8 +24,8 @@ learning_rate = 0.0005
 es_patience = 3 # early stopping patience - for how many epochs with no improvements to wait
 image_size = 256
 
-output_size = 1
-num_cols = 3
+output_size = 1 
+num_cols = 3 
 
 model_path_ = 'saved_models_resnet50'
 logs_path_ = 'logs'
