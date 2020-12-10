@@ -56,4 +56,5 @@ predict_sub = predict_sub.cpu().numpy().reshape(-1,)
 sample_sub = pd.read_csv(os.path.join(SUB_FILE_PATH_20,'sample_submission.csv'))
 
 sample_sub['target'] = predict_sub
+# 'effnetb2_500+250_64_test.csv' is submitted on kaggle for private and public LB score
 sample_sub.to_csv(f'effnetb2_500+250_64_test.csv', index=False)
