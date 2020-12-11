@@ -41,7 +41,7 @@ df2 = pd.read_csv(os.path.join(TRAIN_CSV_PATH,'train_concat.csv')) # roman's dat
 
 train_df = clean_train_df(df,df2)
 
-# GroupKFold
+# groupKFold cross validation
 group_fold = GroupKFold(n_split)
 
 folds = group_fold.split(X = np.zeros(len(train_df)), 

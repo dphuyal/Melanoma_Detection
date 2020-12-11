@@ -12,13 +12,13 @@ SUB_FILE_PATH_20 = '../dataset_256/sample_submission.csv'
 # select efficientnet models or resnet-50 
 model_type = 'efficientnet'
 # dictionary to map b2 with efficientnet-b2, b3 with efficientnet-b3...
-effnet_dict  = {'b2':'efficientnet-b2', 'b3':'efficientnet-b3', 'b4':'efficientnet-b4', 'b7':'efficientnet-b7'}
-# select either b2, b3, b4 or b7
+effnet_dict  = {'b2':'efficientnet-b2', 'b3':'efficientnet-b3', 'b4':'efficientnet-b4', 'b6':'efficientnet-b6'}
+# select either b2, b3, b4 or b6
 effnet_type = 'b2'
 
 # STATICS
 batch_size = 64
-n_split = 5
+n_split = 5 # number of folds
 epochs = 24
 learning_rate = 0.0005
 es_patience = 3 # early stopping patience - for how many epochs with no improvements to wait
@@ -27,5 +27,6 @@ image_size = 256
 output_size = 1 
 num_cols = 3 
 
+# path to save models
 model_path_ = 'saved_models_efficientnet-b2'
 logs_path_ = 'logs'

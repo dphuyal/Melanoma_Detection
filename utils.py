@@ -6,15 +6,14 @@ import torch
 import torch.nn as nn
 
 def set_seed(seed = 43):
-    '''Sets the seed of the entire notebook so results are the same every time we run.
-    This is for REPRODUCIBILITY.'''
+    '''sets the seed of the entire notebook so results are the same every time we run'''
     np.random.seed(seed)
     random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
-    # When running on the CuDNN backend, two further options must be set
+    # when running on the CuDNN backend, two further options must be set
     torch.backends.cudnn.deterministic = True
-    # Set a fixed value for the hash seed
+    # set a fixed value for the hash seed
     os.environ['PYTHONHASHSEED'] = str(seed)
 
 # https://arxiv.org/abs/1708.02002
